@@ -126,6 +126,7 @@ function createNebula(colorHex) {
   const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
   const sprite = new THREE.Sprite(material);
   sprite.scale.set(200, 200, 1); // to như đám mây
+  sprite.originalScale = sprite.scale.clone();
   sprite.position.set(
   (Math.random() - 0.5) * 150, // x: thu hẹp về trung tâm
   (Math.random() - 0.5) * 150,  // y: thấp hơn, gần trái tim
@@ -204,6 +205,7 @@ imageSources.forEach((src) => {
     const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
     const sprite = new THREE.Sprite(material);
     sprite.scale.set(1.5, 1.5, 1);
+sprite.originalScale = sprite.scale.clone();
 
     const orbitGroup = new THREE.Group();
     scene.add(orbitGroup);
@@ -319,6 +321,7 @@ const m = new THREE.PointsMaterial({
 const points = new THREE.Points(g, m);
 scene.add(points);
 
+let selectedSprite = null;
 // Heart image sprite
 const loader = new THREE.ImageLoader();
 loader.load("traitim.png", function (image) {
@@ -345,7 +348,7 @@ loader.load("traitim.png", function (image) {
   const sprite = new THREE.Sprite(material);
 sprite.originalScale = new THREE.Vector3(14, 14, 1);
 sprite.position.set(0, 18, 0);
-sprite.userData = { image: "1.jpg" }; // ← Thêm dòng này
+sprite.userData = { image: "1.jpg", isTraitim: true };// ← Thêm dòng này
 scene.add(sprite);
 clickableSprites.push(sprite); // ← Thêm trái tim vào danh sách clickable
 window.heartSprite = sprite;
@@ -369,6 +372,14 @@ const popup = document.getElementById("popupImage");
 // Nếu bấm vào sprite
 if (intersectsClickable.length > 0) {
   const clickedSprite = intersectsClickable[0].object;
+  if (clickedSprite.userData.isTraitim) {
+  console.log("Đã click vào traitim.png — không hiện popup.");
+  return;
+}
+  // Nếu là sprite thường (không phải trái tim), thì phóng to
+if (!clickedSprite.userData.isHeart && clickedSprite.originalScale) {
+  clickedSprite.scale.copy(clickedSprite.originalScale.clone().multiplyScalar(1.5));
+}
   const imgSrc = clickedSprite.userData.image;
 
   // Nếu là trái tim thì thêm sự kiện click để chuyển trang
