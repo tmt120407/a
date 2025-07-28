@@ -199,29 +199,50 @@ const imageSources = [
   "planet1.png", "planet2.png"
 ];
 
+const placedPositions = [];
+const minDistance = 5;
+function generateValidPosition() {
+  let tryCount = 0;
+  while (tryCount < 1000) {
+    const r = 25 + Math.random() * 10;
+    const a = Math.random() * Math.PI * 2;
+    const y = (Math.random() - 0.5) * 10;
+    const x = r * Math.cos(a);
+    const z = r * Math.sin(a);
+    const tooClose = placedPositions.some(pos => {
+      const dx = pos.x - x;
+      const dy = pos.y - y;
+      const dz = pos.z - z;
+      return Math.sqrt(dx*dx + dy*dy + dz*dz) < minDistance;
+    });
+    if (!tooClose) {
+      placedPositions.push({ x, y, z });
+      return { x, y, z };
+    }
+    tryCount++;
+  }
+  return { x: 0, y: 0, z: 0 }; // fallback
+}
 imageSources.forEach((src) => {
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(src, (texture) => {
     const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
     const sprite = new THREE.Sprite(material);
-    sprite.scale.set(1.5, 1.5, 1);
+    sprite.scale.set(3, 3, 1);
 sprite.originalScale = sprite.scale.clone();
 
     const orbitGroup = new THREE.Group();
     scene.add(orbitGroup);
-let radius, angle, yPos;
 
+let radius, angle, yPos;
 if (src === "heart1.png") {
-  radius = 0;
-  angle = 0;
-  yPos = 0;
-  sprite.userData.isHeart = true; // <--- gắn cờ cho trái tim
+  sprite.position.set(0, 0, 0);
+  sprite.userData.isHeart = true;
 } else {
-  radius = 25 + Math.random() * 10;
-  angle = Math.random() * Math.PI * 2;
-  yPos = (Math.random() - 0.5) * 10;
+  const pos = generateValidPosition();
+  sprite.position.set(pos.x, pos.y, pos.z);
 }
-    sprite.position.set(radius * Math.cos(angle), yPos, radius * Math.sin(angle));
+
     const popupMap = {
   "saomoc.png": "1.jpg",
   "saokim.png": "1.jpg",
